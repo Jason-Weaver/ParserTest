@@ -2,7 +2,6 @@ package testHTML;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -24,60 +23,39 @@ public class parseHTML {
 	 */
 
 	public static void main(String[] args) {
-		File input = new File("/Users/jasonweaver/Documents/workspace/DependsOnParser/bin/testHTML/index.html");
-		Document doc = null;
-		try { 
-			doc = (Document) Jsoup.parse(input, "UTF-8");
-		} catch (IOException e) { 
-			e.printStackTrace(); }
-		
-		Set<String> supporters = null;
-		ArrayList<String> dependants = (ArrayList<String>) Arrays.asList(
-			"org.apache.poi.xwpf.usermodel.XWPFDocument",
-			"org.apache.poi.xwpf.usermodel.XWPFParagraph",
-			"org.apache.poi.xwpf.usermodel.XWPFRun");
-		
-		
-		traverseHTML(doc, dependants, supporters);
-		// testJsoupMethods("/Users/jasonweaver/Documents/workspace/DependsOnParser/bin/testHTML/index.html", "XWPFDocument");
+		testJsoupMethods("/Users/jasonweaver/Documents/workspace/DependsOnParser/bin/testHTML/index.html", "XWPFDocument");
+
 	}
 	
 	
-	// Set<String> dependOnsSet = new HashSet<String>(dependOns);
-	public static Set<String> traverseHTML(Document doc, ArrayList<String> dependants, Set<String> supporters) {
+	public static Set<String> traverseHTML(Document doc, List<String> list) {
+		int dpendantsSize = list.size();
 		
-		Elements libs = doc.getElementsContainingOwnText("");
-		
-		if (dependants.size() == 1) {
+		if (dpendantsSize == 1) {		// Stopping condition
 			Element dependant = null;
 			
-			try {				// create corresponding element
-				Elements foundElements = doc.getElementsContainingOwnText(dependants.get(0));		// has correct text			
-				dependant = foundElements.select("td:eq(0)").first();								// has correct position
+			try {				// create corresponding element/dependent
+				Elements foundElements = doc.getElementsContainingOwnText(list.get(0));	// has correct text			
+				dependant = foundElements.select("td:eq(0)").first();							// has correct position
 			
-				if (foundElements.size() != 1) throw new NumberFormatException();					// Check uniqueness
+				if (foundElements.size() != 1) throw new NumberFormatException();				// Check uniqueness
 			} catch (Exception e) {
 				e.printStackTrace(); }
 			
-			String supportersString = dependant.nextElementSibling().ownText();
-			ArrayList<String> supportersList = (ArrayList<String>) Arrays.asList(supportersString.split("\\s*,\\s*"));
-			
-			
+			String supportersString = dependant.nextElementSibling().ownText();		// update total classes needed
+			Set<String> supporters = new HashSet<String>(Arrays.asList(supportersString.split("\\s*,\\s*")));		
 			
 			return supporters;
 		}
 		
-
+		// Divide
+		Set<String> supporters1 = traverseHTML(doc, list.subList(0, (dpendantsSize/2)-1));
+		Set<String> supporters2 = traverseHTML(doc, list.subList(dpendantsSize/2, dpendantsSize));
 		
+		// Conquer
+		supporters1.addAll(supporters2);
 		
-		int libIndex = 0;
-		for (Element lib : libs) {
-			
-			
-			libIndex++;
-		}
-		
-		return supporters;
+		return supporters1;
 	}
 	
 	
